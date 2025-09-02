@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-color-scheme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Face Recognition Attendance</title>
+  <link rel="sty
+  lesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <div class="face-icon">👤</div>
+        <h1>FaceAttend</h1>
+      </div>
+      <div class="loading-progress">
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p id="loadingText">Initializing system...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application -->
+  <div id="mainApp" class="main-app hidden">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <div class="face-icon">👤</div>
+            <h1>FaceAttend</h1>
+          </div>
+          <div class="header-actions">
+            <button id="themeToggle" class="btn btn--secondary theme-toggle">
+              <span class="theme-icon">🌙</span>
+            </button>
+            <div class="status-indicator">
+              <div id="connectionStatus" class="status-dot status-dot--connected"></div>
+              <span>Connected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Dashboard Stats -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+              <h3 id="totalStudents">0</h3>
+              <p>Registered Students</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <h3 id="todayAttendance">0</h3>
+              <p>Present Today</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-content">
+              <h3 id="fpsCounter">0</h3>
+              <p>Detection FPS</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+              <h3 id="attendanceRate">0%</h3>
+              <p>Attendance Rate</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        <!-- Camera Section -->
+        <section class="camera-section">
+          <div class="card">
+            <div class="card__header">
+              <h2>Live Camera Feed</h2>
+              <div class="camera-controls">
+                <button id="toggleCamera" class="btn btn--sm btn--secondary">
+                  <span id="cameraToggleText">Pause</span>
+                </button>
+              </div>
+            </div>
+            <div class="card__body">
+              <div class="camera-container">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="overlay" class="face-overlay"></canvas>
+              </div>
+              <div id="status" class="status-message">Initializing...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Registration & Controls -->
+        <section class="controls-section">
+          <div class="card">
+            <div class="card__header">
+              <h2>Student Registration</h2>
+            </div>
+            <div class="card__body">
+              <div class="form-group">
+                <label for="studentName" class="form-label">Student Name</label>
+                <input type="text" id="studentName" class="form-control" placeholder="Enter full name" autocomplete="off">
+              </div>
+              <button id="registerBtn" class="btn btn--primary btn--full-width">
+                <span class="btn-text">Register Face</span>
+                <span class="btn-loader hidden">⟳</span>
+              </button>
+              <div id="registrationFeedback" class="feedback-message hidden"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__header">
+              <h2>System Controls</h2>
+            </div>
+            <div class="card__body">
+              <div class="controls-grid">
+                <button id="exportData" class="btn btn--secondary">
+                  📤 Export Data
+                </button>
+                <button id="clearData" class="btn btn--outline">
+                  🗑️ Clear All
+                </button>
+                <label for="importData" class="btn btn--secondary import-btn">
+                  📥 Import Data
+                  <input type="file" id="importData" accept=".json" class="hidden">
+                </label>
+                <button id="downloadCsv" class="btn btn--outline">
+                  📊 Download CSV
+                </button>
+                <button id="cleanupBtn" class="btn btn--secondary">
+                    🧹 Clean Duplicates
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Panel -->
+          <div class="card">
+            <div class="card__header">
+              <h2>Settings</h2>
+            </div>
+            <div class="card__body">
+              <div class="setting-item">
+                <label class="setting-label">
+                  <input type="checkbox" id="autoAttendance" checked>
+                  <span class="checkmark"></span>
+                  Auto-mark attendance
+                </label>
+              </div>
+              <div class="setting-item">
+                <label for="detectionThreshold" class="form-label">Recognition Strictness</label>
+                <input type="range" id="detectionThreshold" class="range-slider" min="0.3" max="0.6" step="0.05" value="0.4">
+                <span id="thresholdValue">0.40</span>
+              </div>
+              <div class="setting-item">
+                 <img src="https://i.imgur.com/uAr9Gf9.png" alt="Chart explaining face recognition thresholds" class="threshold-chart">
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Attendance Section -->
+      <section class="attendance-section">
+        <div class="card">
+          <div class="card__header">
+            <h2>Today's Attendance</h2>
+            <div class="attendance-controls">
+              <input type="text" id="searchAttendance" class="form-control search-input" placeholder="Search students...">
+              <select id="filterAttendance" class="form-control">
+                <option value="all">All Records</option>
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+              </select>
+            </div>
+          </div>
+          <div class="card__body">
+            <div id="attendanceList" class="attendance-list">
+              <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <p>No attendance records yet</p>
+                <span>Students will appear here as they are detected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <p id="confirmMessage">Are you sure you want to proceed?</p>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="btn btn--secondary">Cancel</button>
+        <button id="confirmOk" class="btn btn--primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
